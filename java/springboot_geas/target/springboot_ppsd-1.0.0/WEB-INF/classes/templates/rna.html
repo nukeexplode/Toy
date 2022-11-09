@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>PPSD:Browse Experiments</title>
+    <link href="../css/bootstrap.min.css" rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link href="../css/main.css" rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="icon" href="favicon.ico">
+    <script type="text/javascript" src="../js/jquery-1.12.2.min.js" th:src="@{/js/jquery-1.12.2.min.js}"></script>
+    <script src="../js/bootstrap.min.js" th:src="@{/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" src="../js/echarts.js" th:src="@{/js/echarts.js}"></script>
+    <script type="text/javascript" src="../js/main.js" th:src="@{/js/main.js}"></script>
+    <style type="text/css">
+        #mRNAsearch input{
+            font-family:'Times New Roman';
+            font-size: 17px
+        }
+    </style>
+</head>
+<body>
+<div class="container" style="background:whitesmoke">
+    <!-- 页面头logo部分 -->
+    <div th:insert="~{index::logo}"></div>
+    <!--导航栏-->
+    <nav th:insert="~{index::navbar}"></nav>
+    <form role="form" id="mRNAsearch"  th:action="@{/rna/queryRnas}" method="post">
+        <!--搜索框组-->
+        <div class="box box-info" style="padding-left: 15px;padding-top: 10px">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="angiosperm" style="font-family: Arial">Angiosperm:</label>
+                        <select class="form-control" id="angiosperm" style="font-family: Arial" name="angiosperm">
+                            <option value="All" th:selected="${#strings.equals(angiosperm,'All')}">All</option>
+                            <option value="Monocotyledons" th:selected="${#strings.equals(angiosperm,'Monocotyledons')}">Monocotyledon</option>
+                            <option value="Dicotyledons" th:selected="${#strings.equals(angiosperm,'Dicotyledons')}">Dicotyledon</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="input-group "  style="width: 100%;">
+                        <label for="genus" style="font-family: Arial">Genus:</label>
+                        <div class="input-group">
+                            <input type="text" id="genus" class="form-control"  name="genus"  th:value="${genus}">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group " >
+                        <label for="organizm" style="font-family: Arial">Species:</label>
+                        <div class="input-group">
+                            <input type="text" id="organizm" class="form-control"  name="scientificname" th:value="${scientificname}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div >
+                <div style="text-align: left;padding-bottom: 8px">
+                    <div id="ANNIUZU">
+                        <button type="button" class="btn btn-primary" style="margin-right: 5px" onclick="jump(1)"><b>Search</b></button>
+                        <button type="button" class="btn btn-default" id="cls" style="margin-left: 5px;width: 69.65px;border-color: #5bc0de" onclick="clearformRNA()"><b>Clear</b></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <!--数据表格展示-->
+        <div class="box box-success">
+            <div class="box-body">
+                <table class="table table-hover" style="font-family: Arial;text-align: center;border-top:silver solid 1px;margin-bottom: 0px;border-bottom:lightgrey solid 1px" id="mrnaTable">
+                    <thead style="background-color:#c9e2b3">
+                    <tr>
+                        <th style="text-align: center">ScientificName</th>
+                        <th style="text-align: center">Experiment</th>
+                        <th style="text-align: center">BioProject</th>
+                        <th style="text-align: center">BioSample</th>
+                        <th style="text-align: center">Run</th>
+                        <th style="text-align: center">Reference</th>
+                        <th style="text-align: center">Pubmed</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="rna:${rnainfo.list}">
+                        <td th:text="${rna.scientificname}"></td>
+                        <td><a th:href="@{https://www.ncbi.nlm.nih.gov/sra/(term=${rna.experiment})}" target="_blank" th:text="${rna.experiment}"></a></td>
+                        <td><a th:href="@{https://www.ncbi.nlm.nih.gov/bioproject/(term=${rna.bioproject})}" target="_blank" th:text="${rna.bioproject}"></a></td>
+                        <td><a th:href="@{https://www.ncbi.nlm.nih.gov/biosample/(term=${rna.biosample})}" target="_blank" th:text="${rna.biosample}"></a></td>
+                        <td th:text="${rna.run}"></td>
+                        <td th:attrappend="style=${#strings.isEmpty(rna.reference) ? 'color:#8c8c8c':''}" th:text="${#strings.isEmpty(rna.reference) ? 'N/A':rna.reference}"></td>
+                        <td>
+                            <a th:if="${rna.pubmed}" th:href="@{https://ncbi.nlm.nih.gov/pubmed/(term=${rna.pubmed})}" target="_blank" th:text="${rna.pubmed}"></a>
+                            <span style="color: #8c8c8c" th:if="${rna.pubmed eq 0}">N/A</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="box-footer">
+                <div class="row" style="font-family: Calibri;font-size:16px">
+                    <div class="col-md-8" style="text-align: right">
+                        <a th:onclick="jump(1)" class="btn btn-info btn-xs" style="height: 25px;font-size:14px" th:classappend="${rnainfo.pageNum==1}? 'disabled'">&lt;&lt;Top</a>
+                        <a th:onclick="jump([[${rnainfo.pageNum-1}]])" class="btn btn-info btn-xs" style="height: 25px;font-size:14px" th:classappend="${rnainfo.pageNum==1}? 'disabled'">&lt;Pre</a>
+                        <b>page [[${rnainfo.pageNum}]] of [[${rnainfo.pages}]]; [[${rnainfo.total}]] records</b>
+                        <a th:onclick="jump([[${rnainfo.pageNum+1}]])" class="btn btn-info btn-xs" th:classappend="${rnainfo.pageNum==rnainfo.pages}? 'disabled'" style="height: 25px;font-size:14px">Next&gt;</a>
+                        <a th:onclick="jump([[${rnainfo.pages}]])" class="btn  btn-info btn-xs" th:classappend="${rnainfo.pageNum==rnainfo.pages}? 'disabled'" style="height: 25px;font-size:14px">End&gt;&gt;</a>
+                    </div>
+                    <div class="col-md-4" style="text-align: right;padding-right: 25px;display: inline">
+                        <button class="btn btn-info btn-xs" type="submit" style="width: 70px;font-size:14px">GO</button>
+                        <input class="text-capitalize " style="width: 40px;height: 25px;text-align: center" type="text" id="pn" name="pn" th:value="${rnainfo.pageNum}"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<!--copyright-->
+<div th:insert="~{index::copyright}">
+</div>
+</body>
+<script type="text/javascript">
+    $(document).ready(function () {
+        autoFix();
+    })
+    //一键清空
+    function clearformRNA() {
+        document.getElementById("angiosperm").value = "All";
+        document.getElementById("genus").value = "";
+        document.getElementById("organizm").value = "";
+    }
+    function jump(page) {
+        $("#pn").attr("value", page);
+        $("#mRNAsearch").submit();
+    }
+</script>
+</html>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <!--日志级别以及优先级排序: OFF > FATAL > ERROR > WARN > INFO > DEBUG > TRACE > ALL -->
+    <properties>
+        <property name="LOG_HOME">D:/springlog</property>
+        <property name="FILE_NAME">mylog</property>
+<!--        <property name="log.sql.level">trace</property>-->
+        <property name="log.sql.level">info</property>
+    </properties>
+
+
+    <Appenders>
+        <!--打印在控制台-->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %l - %msg%n" />
+        </Console>
+
+        <!--打印成文件-->
+<!--        <RollingRandomAccessFile name="RollingRandomAccessFile" fileName="${LOG_HOME}/${FILE_NAME}.log" filePattern="${LOG_HOME}/$${date:yyyy-MM}/${FILE_NAME}-%d{yyyy-MM-dd HH-mm}-%i.log">-->
+<!--            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %l - %msg%n"/>-->
+<!--            <Policies>-->
+<!--                <TimeBasedTriggeringPolicy interval="1"/>-->
+<!--                <SizeBasedTriggeringPolicy size="10 MB"/>-->
+<!--            </Policies>-->
+<!--            <DefaultRolloverStrategy max="20"/>-->
+<!--        </RollingRandomAccessFile>-->
+    </Appenders>
+
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="RollingRandomAccessFile" />
+        </Root>
+
+        <Logger name="com.julio" level="${log.sql.level}" additivity="false">
+            <AppenderRef ref="Console" />
+        </Logger>
+    </Loggers>
+</Configuration>

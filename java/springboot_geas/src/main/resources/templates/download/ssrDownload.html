@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>PPSD:Download SSR</title>
+    <link href="../static/css/bootstrap.min.css" rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link href="../static/css/main.css" rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="icon" href="favicon.ico">
+    <script type="text/javascript" src="../static/js/jquery-1.12.2.min.js" th:src="@{/js/jquery-1.12.2.min.js}"></script>
+    <script src="../static/js/bootstrap.min.js" th:src="@{/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" src="../static/js/main.js" th:src="@{/js/main.js}"></script>
+    <style type="text/css">
+        /*弹出提示框的样式*/
+        .tooltip-inner{
+            background: #5bc0de !important; /*修改背景色*/
+            text-align: left !important;/*字体左对齐*/
+            font-size: 16px;
+            color:whitesmoke !important;/*字体颜色*/
+            border:1px solid #dedede;/*添加boder*/
+            max-width: 2000px !important;/*修改宽度*/
+        }
+        .tooltip{
+            opacity: 1 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" style="background:whitesmoke">
+        <!-- 页面头logo部分 -->
+        <div th:insert="~{index::logo}"></div>
+        <!--导航栏-->
+        <nav th:insert="~{index::navbar}"></nav>
+        <!--搜索框组-->
+        <div class="box box-info" style="padding-left: 10px;padding-bottom: 20px">
+            <form id="ssrDownloadInfo" role="form" method="get" th:action="@{/ssrDownloadInfo}">
+                <input type="text" name="pn" id="pn" style="display: none" th:value="${downloadInfo.pageNum}">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="input-group " style="width: 100%;margin: 10px">
+                            <label for="keyword">Keyword</label>
+                            <div class="input-group" style="width: 100%;">
+                                <input type="text" name="keyword" id="keyword" class="form-control" placeholder="input genus , species or cultivar..." th:value="${keyword}" style="font-family:'Times New Roman';font-size: 17px"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div style="text-align: center;margin: 10px">
+                            <label for="ANNIUZU" style="visibility: hidden">按钮组</label>
+                            <div id="ANNIUZU">
+                                <button type="submit" class="btn btn-primary" style="margin-right: 5px" id="ssrSubmit"><b>Search</b></button>
+                                <button type="button" class="btn btn-default" id="cls" style="margin-left: 5px;width: 69.65px;border-color: #5bc0de" onclick="javascript:clearform();"><b>Clear</b></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!--可供下载的SSR数据信息表格-->
+        <div class="box box-success">
+            <div class="box-body">
+                <table class="table table-hover " style="text-align: center;margin-bottom: 0px;border-top:silver solid 1px;border-bottom:lightgrey solid 1px">
+                    <thead style="background-color: #c9e2b3">
+                    <tr>
+                        <th style="text-align: center;">Genus</th>
+                        <th style="text-align: center;">Species</th>
+                        <th style="text-align: center">Species SSR Count</th>
+                        <th style="text-align: center">Cultivar SSR Count</th>
+                        <th style="text-align: center;">Download(.xls)</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="info:${downloadInfo.list}">
+                        <td><i>[[${info.genus}]]</i> L.</td>
+                        <td th:text="${#strings.isEmpty(info.specie)?info.ref:info.specie}"></td>
+                        <td>
+                            <a th:attrappend="style=${#strings.equals(info.sperecord,'0')?'pointer-events: none;color: #8c8c8c':''}" th:href="@{/ssr/speciesSsr(genus=${info.genus})}" target="_blank" th:text="${#strings.equals(info.sperecord,'0')?'N/A':(info.sperecord+' records')}" data-toggle="tooltip" data-trigger="hover" data-placement="top" th:title="${'sp. '+info.species}">
+                            </a>&nbsp;
+                            <span style="color: #269abc" th:if="${info.sperecord}" class="glyphicon glyphicon-search"></span>
+                        </td>
+                        <td>
+                            <a th:attrappend="style=${#strings.equals(info.culrecord,'0')?'pointer-events: none;color: #8c8c8c':''}" th:href="@{/ssr/cultivarSsr(genus=${info.genus},species=${info.specie})}" target="_blank" th:text="${#strings.equals(info.culrecord,'0')?'N/A':(info.culrecord+' records')}" data-toggle="tooltip" data-trigger="hover" data-placement="top" th:title="${'cv. '+info.cultivars}">
+                            </a>&nbsp;
+                            <span style="color: #269abc" th:if="${info.culrecord}" class="glyphicon glyphicon-search"></span>
+                        </td>
+                        <td>
+                            <div th:if="${info.sperecord}" class="btn-group dropdown">
+                                <button class="btn btn-success btn-xs dropdown-toggle" id="speciesMenu" data-toggle="dropdown">Species SSR <span class="caret"></span></button>
+                                <ul class="dropdown-menu" aria-labelledby="speciesMenu">
+                                    <li><a th:href="@{/ssr/batchDownSpecieSsr(genus=${info.genus})}">SSR data</a></li>
+                                    <li><a th:href="@{/ssr/batchDownSpePrimer(genus=${info.genus})}">Primer data</a></li>
+                                </ul>
+                            </div>
+                            <div th:if="${info.culrecord}" class="btn-group dropdown">
+                                <button class="btn btn-success btn-xs dropdown-toggle" id="cultivarMenu" data-toggle="dropdown">Cultivar SSR <span class="caret"></span></button>
+                                <ul class="dropdown-menu" aria-labelledby="cultivarMenu">
+                                    <li><a th:href="@{/ssr/batchDownCultivarSsr(genus=${info.genus},species=${info.specie})}">SSR data</a></li>
+                                    <li><a th:href="@{/ssr/batchDownCulPrimer(genus=${info.genus},species=${info.specie})}">Primer data</a></li>
+                                </ul>
+                            </div>
+                            <span style="color: #8c8c8c" th:if="${(info.sperecord + info.culrecord)==0}">N/A</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${downloadInfo.list.size()==0}">
+                        <td colspan="5" style="color: #8c8c8c;font-weight: bold">Found No Records!</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="box-footer">
+                <!--数据库分页器-->
+                <div class="row" style="font-family: Calibri;font-size:16px;margin-bottom: 2px;">
+                    <div class="col-md-8" style="text-align: right">
+                        <a th:onclick="jump(1)" class="btn btn-info btn-xs" style="height: 25px;font-size:14px" th:classappend="${downloadInfo.pageNum==1}? 'disabled'">&lt;&lt;Top</a>
+                        <a th:onclick="jump([[${downloadInfo.pageNum-1}]])" class="btn btn-info btn-xs" style="height: 25px;font-size:14px" th:classappend="${downloadInfo.pageNum==1}? 'disabled'">&lt;Pre</a>
+                        <b>page [[${downloadInfo.pageNum}]] of [[${downloadInfo.pages}]]; [[${downloadInfo.total}]] records</b>
+                        <a th:onclick="jump([[${downloadInfo.pageNum+1}]])" class="btn btn-info btn-xs" th:classappend="${downloadInfo.pageNum==downloadInfo.pages}? 'disabled'" style="height: 25px;font-size:14px">Next&gt;</a>
+                        <a th:onclick="jump([[${downloadInfo.pages}]])" class="btn  btn-info btn-xs" th:classappend="${downloadInfo.pageNum==downloadInfo.pages}? 'disabled'" style="height: 25px;font-size:14px">End&gt;&gt;</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--copyright-->
+    <div th:insert="~{index::copyright}"></div>
+</body>
+<script type="text/javascript">
+    $(document).ready(function () {
+        autoFix();
+    })
+    function clearform() {
+        $("#keyword").val("");
+    }
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    })
+    function jump(page) {
+        $("#pn").attr("value", page);
+        $("#ssrDownloadInfo").submit();
+    }
+</script>
+</html>

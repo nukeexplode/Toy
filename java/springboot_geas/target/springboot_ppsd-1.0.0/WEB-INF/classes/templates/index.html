@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Plant Poly-SSR Database</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1.0,user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <link href="../static/css/bootstrap.min.css" rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link href="../static/css/main.css" rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="icon" href="favicon.ico">
+    <script type="text/javascript" src="../static/js/jquery-1.12.2.min.js" th:src="@{/js/jquery-1.12.2.min.js}"></script>
+    <script src="../static/js/bootstrap.min.js" th:src="@{/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" src="../static/js/main.js" th:src="@{/js/main.js}"></script>
+</head>
+<body>
+    <div class="container" style="background:whitesmoke">
+        <!-- 页面头logo部分 -->
+        <div class="row" th:fragment="logo">
+                <img src="../static/images/logo.jpg" class="img-responsive" th:src="@{/images/logo.jpg}">
+        </div>
+        <!--导航栏-->
+        <nav class="navbar navbar-inverse " style="background-color:#008cba" th:fragment="navbar">
+                <!-- 导航 navbar -->
+                <div id="navbar" class="navbar-collapse collapse navbar-fix ">
+                    <ul class="nav navbar-nav navbar-fix " role="navigation">
+                        <li role="presentation" th:class="${#strings.contains(#httpServletRequest.getRequestURL(),'index')?'active':''}">
+                            <a th:href="@{/index}"><span class="glyphicon glyphicon-home"> Home</span> </a>
+                        </li>
+                        <li role="presentation" th:class="${#strings.contains(#httpServletRequest.getRequestURL(),'rna')?'active':''}">
+                            <a th:href="@{/rna/queryRnas}"><span class="glyphicon glyphicon-search"> Browse experiments</span></a>
+                        </li>
+                        <li role="presentation" th:class="${#strings.contains(#httpServletRequest.getRequestURL(),'Download')?'active':''}">
+                            <a th:href="@{/ssrDownloadInfo}"><span class="glyphicon glyphicon-download-alt"> Download</span></a>
+                        </li>
+                        <li role="presentation" th:class="${#strings.contains(#httpServletRequest.getRequestURL(),'note')?'active':''}">
+                            <a th:href="@{/notes}"><span class="glyphicon glyphicon-edit"> Release notes</span> </a>
+                        </li>
+                        <li role="presentation" th:class="${#strings.contains(#httpServletRequest.getRequestURL(),'help')?'active':''}">
+                            <a th:href="@{/help}"><span class="glyphicon glyphicon-question-sign"> Help</span> </a>
+                        </li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right navbar-fix" style="padding-right:0px">
+                        <li><a href="#"><span class='glyphicon glyphicon-calendar'></span> <span id="mydate"></span></a></li>
+                    </ul>
+                </div>
+        </nav>
+        <!--搜索框组-->
+        <div class="box" style="padding-left: 10px;padding-bottom: 20px">
+            <form role="form" id="form1" method="get" th:action="@{/search}">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="input-group " style="width: 100%;margin: 10px">
+                            <label for="keyword">Keyword</label>
+                            <div class="input-group" style="width: 100%;">
+                                <input type="text" name="keyword" id="keyword" class="form-control" placeholder="input genus , species or cultivar..." style="font-family:'Times New Roman';font-size: 17px"/>
+                                <div class="input-group-btn">
+                                    <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" id="seeBtn">See All <span class="caret"></span></button>
+                                    <ul class="dropdown-menu dropdown-menu-right">
+                                        <li>
+                                            <div class="row" style="width: 775px" id="allOrangizm">
+                                                <!--按三列展示物种名-->
+                                                <ul class="list-unstyled col-md-4 dropul" id="organizmUl1">
+                                                </ul>
+                                                <ul class="list-unstyled col-md-4 dropul" id="organizmUl2">
+                                                </ul>
+                                                <ul class="list-unstyled col-md-4 dropul" id="organizmUl3">
+                                                </ul>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div style="text-align: center;margin: 10px">
+                            <label for="ANNIUZU" style="visibility: hidden">按钮组</label>
+                            <div id="ANNIUZU">
+                                <button type="submit" class="btn btn-primary" style="margin-right: 5px" id="ssrSubmit"><b>Search</b></button>
+                                <button type="button" class="btn btn-default" id="cls" style="margin-left: 5px;width: 69.65px;border-color: #5bc0de" onclick="javascript:clearform();"><b>Clear</b></button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </form>
+        </div>
+            <!-- 热点物种信息部分 -->
+        <div class="row" style="margin: 15px 0 15px 0">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active"><a href="#dicotyledon" aria-controls="dicotyledon" data-toggle="tab" style="font-weight: bold;color: grey">Dicotyledon</a></li>
+                    <li role="presentation"><a href="#monocotyledon" aria-controls="monocotyledon" data-toggle="tab" style="font-weight: bold;color: grey">Monocotyledon</a></li>
+                </ul>
+                <div id="myTabContentB" class="tab-content" style="border-width: 0 1px 1px 1px;border-style: solid;border-color: lightgray;padding-left: 5px;padding-right: 5px;background-color: white">
+                    <div class="tab-pane fade active in" id="dicotyledon">
+                        <div id="dicoDiv" style="padding: 15px 0px 15px 0px;overflow-x: auto;overflow-y: hidden;white-space: nowrap">
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="monocotyledon">
+                        <div id="monoDiv" style="padding: 15px 0px 15px 0px;overflow-x: auto;overflow-y: hidden;white-space: nowrap">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <!-- news和visitor-->
+        <div class="row" style="margin-bottom: 10px;display: inline">
+                <div class="toolview" style="margin-right: 19px;background-color: white">
+                    <div class="view-title">
+                        <span class="glyphicon glyphicon-book" style="color: #337ab7"></span><h5 style="display: inline"> Update & News</h5>
+                    </div>
+                    <div class="view-body" style="background-color: white">
+                        <div th:if="${newsNotes.size() == 0}" style="border-bottom: 1px solid lightgray;margin-top: 10px">
+                            <div style="padding-left: 10px">
+                                <span class="glyphicon glyphicon-leaf" style="color: #4cae4c"></span> <b>The Plant Poly-SSR Database (PPSD) is established</b>
+                                <div> Welcome to the Plant Poly-SSR Database!
+                                    We believe that this convenient and abundant database will help researchers to better use microsatellite to study sorts of model crops or economic plants,
+                                    such as species identification, genetic diversity, genome mapping,population genetics and so on.</div>
+                                <div style="text-align: right;color: grey;padding-right: 10px">2020-11-11</div>
+                            </div>
+                        </div>
+                        <div th:each="news:${newsNotes}" style="border-bottom: 1px solid lightgray;margin-top: 10px">
+                            <div style="padding-left: 10px">
+                                <span class="glyphicon glyphicon-leaf" style="color: #4cae4c"></span> <b th:text="${news.title}"></b>
+                                <div th:utext="${news.content}"></div>
+                                <div style="text-align: right;color: grey;padding-right: 10px" th:text="${#dates.format(news.createdate,'yyyy-MM-dd')}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="toolview" style="background-color: white">
+                    <div class="view-title">
+                        <span class="glyphicon glyphicon-globe" style="color: #337ab7"></span><h5 style="display: inline"> Visitor</h5>
+                    </div>
+                    <div id="visitor" style="height: 289px;width: 100%;margin-top: 5px;padding: 10px">
+                        <script type="text/javascript" src="//rf.revolvermaps.com/0/0/7.js?i=5b84pac23ku&amp;m=0&amp;c=007eff&amp;cr1=ff0000&amp;br=5&amp;sx=0" async="async"></script>
+                    </div>
+                </div>
+        </div>
+    </div>
+    <!--copyright-->
+    <div class="footer" th:fragment="copyright">
+        <div class="navbar-inner navbar-content-center">
+            <p class="credit text-center" style="font-family: Arial;font-size: 12px;margin-bottom: 0px">
+                2020 ©<a href="http://tealab.ahau.edu.cn/" target="_blank"> State Key Laboratory of Tea Plant Biology and Utilization, </a>
+                <a href="https://www.ahau.edu.cn/" target="_blank">Anhui Agricultural University</a>, Hefei, 230036, Anhui, China.
+            </p>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+    $(document).ready(function(){
+        seeAll();//调用物种名展示函数
+        queryHotSpecies();//调用热点物种渲染函数
+    });
+    <!--一键清空-->
+    function clearform() {
+        document.getElementById("keyword").value = "";
+    }
+</script>
+</html>

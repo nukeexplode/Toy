@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>PPSD:Search Results</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <link href="../static/css/bootstrap.min.css" rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link href="../static/css/main.css" rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="icon" href="favicon.ico">
+    <script type="text/javascript" src="../static/js/jquery-1.12.2.min.js" th:src="@{/js/jquery-1.12.2.min.js}"></script>
+    <script src="../static/js/bootstrap.min.js" th:src="@{/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" src="../static/js/main.js" th:src="@{/js/main.js}"></script>
+</head>
+<body>
+    <div class="container" style="background:whitesmoke">
+        <div th:insert="~{index::logo}">
+        </div>
+        <nav th:insert="~{index::navbar}">
+        </nav>
+        <!--搜索框组-->
+        <div class="box box-info" style="padding-left: 10px;padding-bottom: 20px">
+            <form role="form" id="form1" method="get" th:action="@{/search}">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="input-group " style="width: 100%;margin: 10px">
+                            <label for="keyword">Keyword</label>
+                            <div class="input-group" style="width: 100%;">
+                                <input type="text" th:value="${keyword}" name="keyword" id="keyword" class="form-control" placeholder="input genus , species or cultivar..."
+                                       style="font-family:'Times New Roman';font-size: 17px"/>
+                                <div class="input-group-btn">
+                                    <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" id="seeBtn">See All <span class="caret"></span></button>
+                                    <ul class="dropdown-menu dropdown-menu-right">
+                                        <li>
+                                            <div class="row" style="width: 775px" id="allOrangizm">
+                                                <ul class="list-unstyled col-md-4 dropul" id="organizmUl1">
+                                                </ul>
+                                                <ul class="list-unstyled col-md-4 dropul" id="organizmUl2">
+                                                </ul>
+                                                <ul class="list-unstyled col-md-4 dropul" id="organizmUl3">
+                                                </ul>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div style="text-align: center;margin: 10px">
+                            <label for="ANNIUZU" style="visibility: hidden">按钮组</label>
+                            <div id="ANNIUZU">
+                                <button type="submit" class="btn btn-primary" style="margin-right: 5px" id="ssrSubmit"><b>Search</b></button>
+                                <button type="button" class="btn btn-default" id="cls" style="margin-left: 5px;width: 69.65px;border-color: #5bc0de" onclick="javascript:clearform();"><b>Clear</b></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <!--搜索结果列表-->
+        <div id="searchContext">
+            <div class="box box-success" style="padding-top: 10px;padding-bottom: 10px">
+                <div th:each="info : ${infos}" class="search-result">
+                    <h4><a onclick="toInfo(this.text)">[[${info.genus}]] <span th:text="${#strings.isEmpty(info.specie) ? info.ref:info.specie}"></span></a></h4>
+                    <dl th:if="${info.sperecord}">
+                        <dt>species SSR: </dt><a th:href="@{/ssr/speciesSsr(genus=${info.genus})}"><dd th:text="${info.sperecord +' records'}"></dd></a>
+                    </dl>
+                    <dl th:if="${info.culrecord}">
+                        <dt>cultivar SSR: </dt><a th:href="@{/ssr/cultivarSsr(genus=${info.genus},species=${info.specie})}"><dd th:text="${info.culrecord +' records'}"></dd></a>
+                    </dl>
+                    <dl th:if="${!#strings.isEmpty(info.spgenotype)}">
+                        <dt>genotype: </dt><a th:href="${info.spsiteurl}" target="_blank"><dd th:text="${info.spgenotype}"></dd></a>
+                    </dl>
+                </div>
+            </div>
+            <div th:if="${infos.size()==0}" style="padding: 10px">
+                <p class="bg-danger" style="font-weight: bold;font-size: large;padding: 15px;text-align: center">No Search Result!</p>
+            </div>
+        </div>
+        <!--隐式表单提交进入物种详情info页面-->
+        <form id="infoForm" th:action="@{/info}" style="display: none">
+            <input name="scientificname" id="infoParam">
+        </form>
+    </div>
+    <!--copyright-->
+    <div th:insert="~{index::copyright}">
+    </div>
+</body>
+<script type="text/javascript">
+    $(document).ready(function(){
+        seeAll();
+        highLight();
+        autoFix();
+    });
+    //点击检索结果进入详情页
+    function toInfo(param) {
+        $("#infoParam").val(param);
+        $("#infoForm").submit();
+    }
+    //高亮提示
+    function highLight() {
+        var keyword = document.getElementById("keyword").value;
+        var headList = $("#searchContext h4");
+        if (keyword){
+            var reg = new RegExp(keyword,"gi"); //全局匹配忽略大小写
+            for (let i = 0; i < headList.length; i++) {
+                let headContext=headList[i].innerHTML.replace(reg,function (text) {
+                    return "<span style='color: #f73131'>"+text+"</span>";
+                });
+                $("#searchContext").find("h4:eq("+i+")").empty(); //找id为searchContext的元素中，第i个h4标签
+                $("#searchContext").find("h4:eq("+i+")").append(headContext);
+            }
+        }
+    }
+    <!--一键清空-->
+    function clearform() {
+        document.getElementById("keyword").value = "";
+    }
+</script>
+</html>
